@@ -1,2 +1,626 @@
-姓名：
-学号后4位：
+姓名：吴晓娜
+学号后4位：（没有找到学号），简历编号117684，联系方式：18817551851
+
+一、2048.html:
+
+<!DOCTYPE html>
+<html>
+<head>
+	<title>2048</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0, minimum-scale=1.0">
+	<link rel="stylesheet" type="text/css" href="2048.css">
+	<script type="text/javascript"
+    src="http://libs.baidu.com/jquery/1.9.0/jquery.min.js"></script>
+    <script type="text/javascript" src="2048.js"></script>
+</head>
+<body>
+ <div class="game">
+	<div class="heading">
+		<h1 class="title">2048</h1>
+		<div class="scores-container">
+			<span>SCORE:</span>
+			<span class="score">0</span>
+		</div>
+	</div>
+	<div class="game-intro">
+		<button id="restart-button">New Game</button>
+		<h3 class="subtitle">Play 2048 Game Online</h3>
+		<div class="above-game">
+			<p>Join the numbers and get to the 2048 tile!</p>
+		</div>
+	</div>
+	<div id="wrapper">
+		<div id="cell0-0" class="cell"></div>
+		<div id="cell0-1" class="cell"></div>
+		<div id="cell0-2" class="cell"></div>
+		<div id="cell0-3" class="cell"></div>
+
+		<div id="cell1-0" class="cell"></div>
+		<div id="cell1-1" class="cell"></div>
+		<div id="cell1-2" class="cell"></div>
+		<div id="cell1-3" class="cell"></div>
+
+		<div id="cell2-0" class="cell"></div>
+		<div id="cell2-1" class="cell"></div>
+		<div id="cell2-2" class="cell"></div>
+		<div id="cell2-3" class="cell"></div>
+
+		<div id="cell3-0" class="cell"></div>
+		<div id="cell3-1" class="cell"></div>
+		<div id="cell3-2" class="cell"></div>
+		<div id="cell3-3" class="cell"></div>
+		<div id="gameover">
+			<h3>GAME OVER</h3>
+		</div>
+	</div>
+
+</div>
+</body>
+</html>
+
+二、2048.css
+
+*{
+	padding: 0;
+	margin: 0;
+}
+body{
+	position: relative;
+	margin: 30px 0;
+}
+.game{
+	position: absolute;
+	width: 550px;
+	height: 1000px;
+	left: 50%;
+	transform: translateX(-50%);
+	text-align: center;
+}
+
+.heading{
+	display: relative;
+	width: 100%;
+	margin-bottom: 6px;
+}
+
+.title{
+	display: inline-block;
+	width: 120px;
+	box-sizing: border-box;
+	margin-right: 20px;
+}
+
+.scores-container{
+	display: inline-block;
+}
+.scores-container span{
+	font-size: 23px;
+	line-height: 23px;
+	text-align: center;
+}
+
+.game-intro{
+	margin-bottom: 10px;
+	margin-left: 25px;
+	text-align: left;
+}
+
+#restart-button{
+	display: block;
+	background: #bbada0;
+	border-radius: 3px;
+	text-decoration: none;
+	color: #f9f6f2;
+	height: 40px;
+	line-height: 42px;
+	font-size: 20px;
+	text-align: center;
+	float: right;
+	margin-right:25px;
+}
+
+#wrapper{
+	position: relative;
+	display: inline-block;
+	width: 500px;
+	height: 500px;
+	border: 1px solid black;
+	background-color: #bbada0;
+	border-radius: 10px;
+}
+
+.cell{
+	position: absolute;
+	width: 100px;
+	height: 100px;
+	background-color: #ccc0b3;
+	border-radius: 10px;
+}
+
+.number-cell{
+	width: 100px;
+	height: 100px;
+	position: absolute;
+	border-radius: 10px;
+	line-height: 100px;
+	font-size: 30px;
+	font-weight: bold;
+	text-align: center;
+}
+
+#gameover{
+	position: absolute;
+	display: none;
+	width: 500px;
+	height: 500px;
+	background-color: black;
+	opacity: 0.3;
+	z-index: 100;
+	text-align: center;
+	color: green;
+}
+
+#gameover h3{
+	display: block;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	opacity: 1;
+	font-size: 40px;
+}
+
+三、2048.js
+
+var board = [];
+var score = 0;
+var add = [];
+$(document).ready(function(e){
+	newGame();
+	$("#restart-button").click(function(){
+		newGame();
+		score = 0;
+		setScores();
+		$("#gameover").css("display","none");
+	});
+});
+
+
+
+function newGame(){
+	init();
+	generateOneNumber();
+	generateOneNumber();
+}
+
+function init(){
+	for(var i = 0; i < 4; i++){
+		for(var j = 0; j < 4; j++){
+			var gridCell = $("#cell"+i+"-"+j);
+			gridCell.css("top", getPosTop(i,j));
+			gridCell.css("left", getPosLeft(i,j));
+		}
+	}
+	for(var i = 0; i < 4; i++){
+		board[i] = [];
+		add[i] = [];
+		for(var j = 0; j < 4; j++){
+			board[i][j] = 0;
+			add[i][j] = 0;
+		}
+	}
+	updateBoardView();
+
+}
+
+function updateBoardView(){
+	$(".number-cell").remove();
+	for(var i = 0; i < 4; i++){
+		for(var j = 0; j < 4; j++){
+			$("#wrapper").append('<div class="number-cell" id="number-cell-'+i+'-'+j+'"></div>');
+			var theNumberCell = $('#number-cell-'+i+'-'+j);
+			if(board[i][j] == 0){
+				theNumberCell.css('width','0px');
+				theNumberCell.css('height','0px');
+				theNumberCell.css('top',getPosTop(i,j));
+				theNumberCell.css('left',getPosLeft(i,j));
+			}else{
+				theNumberCell.css('width','100px');
+				theNumberCell.css('height','100px');
+				theNumberCell.css('top',getPosTop(i,j));
+				theNumberCell.css('left',getPosLeft(i,j));
+				theNumberCell.css('background-color',getNumberBackgroundColor(board[i][j]));
+				theNumberCell.css('color',getNumberColor(board[i][j]));
+				theNumberCell.text(board[i][j]);
+			}
+		}
+	}
+}
+
+function generateOneNumber(){
+	if(noSpace(board)){
+		return false;
+	}
+	var randx = parseInt(Math.floor(Math.random()*4));
+	var randy = parseInt(Math.floor(Math.random()*4));
+	while(true){
+		if(board[randx][randy] == 0){
+			break;
+		}
+		var randx = parseInt(Math.floor(Math.random()*4));
+		var randy = parseInt(Math.floor(Math.random()*4));
+	}
+	var randNumber = Math.random()<0.5?2:4;
+	board[randx][randy] = randNumber;
+	showNumberWithAnimation(randx,randy,randNumber);
+	//console.log(randx+" "+randy+" "+ randNumber);
+	return true;
+}
+
+function showNumberWithAnimation(i, j, randNumber){
+	var numberCell = $('#number-cell-'+i+'-'+j);
+	numberCell.css('background-color', getNumberBackgroundColor(randNumber));
+	numberCell.css('color', getNumberColor(randNumber));
+	numberCell.text(randNumber);
+	numberCell.animate({
+		width:"100px",
+		height:"100px",
+		top : getPosTop(i,j),
+		left:getPosLeft(i,j)
+	},50);
+}
+
+
+$(document).keydown(function(event){
+	event.preventDefault();//禁止方向键和滚动条的联动
+	switch(event.keyCode){
+		case 37://left
+			//console.log("left");
+			if(moveLeft()){
+				setScores();
+				setTimeout(generateOneNumber,220);
+				//generateOneNumber();
+				setTimeout(gameOver,230);
+			}
+			break;
+		case 38://up
+			if(moveUp()){
+				setScores();
+				setTimeout(generateOneNumber,220);
+				//generateOneNumber();
+				setTimeout(gameOver,230);
+			}
+			break;
+		case 39://right
+			if(moveRight()){
+				setScores();
+				setTimeout(generateOneNumber,220);
+				//generateOneNumber();
+				setTimeout(gameOver,230);
+			}
+			break;
+		case 40://down
+			if(moveDown()){
+				setScores();
+				setTimeout(generateOneNumber,220);
+				//generateOneNumber();
+				setTimeout(gameOver,230);
+			}
+			break;
+	}
+});
+
+function setScores(){
+	document.getElementsByClassName("score")[0].innerHTML = score;
+}
+
+function moveLeft(){
+	if(!canMoveLeft(board)){
+		return false;
+	}
+	initAddArray();
+	for(var i = 0; i < 4; i++){
+		for(var j = 1; j < 4; j++){
+			if(board[i][j]!=0){
+				for(var k = 0; k < j; k++){
+					if(board[i][k] == 0 && noBlockHorizontal(i, k, j, board)){
+						showMoveAnimation(i,j,i,k);
+						board[i][k] = board[i][j];
+						board[i][j] = 0;
+						break;
+					}else if(board[i][k] == board[i][j] && noBlockHorizontal(i, k, j, board)){
+						showMoveAnimation(i,j,i,k);
+						if(add[i][k] == 0){							
+							board[i][k] *= 2;
+							board[i][j] = 0;
+							add[i][k] = 1;
+							score += board[i][k];
+						}else {					
+							board[i][k+1] = board[i][j];
+							board[i][j] = 0;
+						}
+						break;
+					}
+				}
+			}
+		}
+	}
+	setTimeout(updateBoardView,200);
+	return true;
+}
+
+function canMoveLeft(board){
+	for(var i = 0; i < 4; i++){
+		for(var j = 1; j < 4; j++){
+			if(board[i][j]!=0){
+				if(board[i][j-1] == 0 || board[i][j-1]==board[i][j]){
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+function moveRight(){
+	if(!canMoveRight(board)){
+		return false;
+	}
+	initAddArray();
+	for(var i = 0; i < 4; i++){
+		for(var j = 2; j >= 0; j--){
+			if(board[i][j]!=0){
+				for(var k = 3; k > j; k--){
+					if(board[i][k] == 0 && noBlockHorizontal(i, j, k, board)){
+						showMoveAnimation(i,j,i,k);
+						board[i][k] = board[i][j];
+						board[i][j] = 0;
+						break;
+					}else if(board[i][k] == board[i][j] && noBlockHorizontal(i, j, k, board)){
+						showMoveAnimation(i,j,i,k);	
+						if(add[i][k] == 0){
+							board[i][k] *= 2;
+							score += board[i][k];
+							board[i][j] = 0;
+							add[i][k] = 1;
+						}else{
+							board[i][k-1] = board[i][j];
+							board[i][j] = 0;
+						}				
+						break;						
+					}
+				}
+			}
+		}
+	}
+	setTimeout(updateBoardView,200);
+	return true;
+}
+
+function canMoveRight(board){
+	for(var i = 0; i < 4; i++){
+		for(var j = 0; j < 3; j++){
+			if(board[i][j]!=0){
+				if(board[i][j+1] == 0 || board[i][j+1]==board[i][j]){
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+function noBlockHorizontal(row, col1, col2, board){
+	for(var i = col1+1; i < col2; i++){
+		if(board[row][i]!=0){
+			return false;
+		}
+	}
+	return true;
+}
+
+function moveUp(){
+	if(!canMoveUp(board)){
+		return false;
+	}
+	initAddArray();
+	for(var j = 0; j < 4; j++){
+		for(var i = 1; i < 4; i++){
+			if(board[i][j]!=0){
+				for(var k = 0; k < i; k++){
+					if(board[k][j] == 0 && noBlockVertical(j, k, i, board)){
+						showMoveAnimation(i,j,k,j);
+						board[k][j] = board[i][j];
+						board[i][j] = 0;
+						break;
+					}else if(board[k][j] == board[i][j] && noBlockVertical(j, k, i, board)){
+						showMoveAnimation(i,j,k,j);
+						if(add[k][j] == 0){
+							board[k][j] *= 2;
+							score += board[k][j];
+							board[i][j] = 0;
+							add[k][j] = 1;
+						}else{
+							board[k+1][j] = board[i][j];
+							board[i][j] = 0;
+						}	
+						break;
+					}
+				}
+			}
+		}
+	}
+	setTimeout(updateBoardView,200);
+	return true;
+}
+
+function canMoveUp(board){
+	for(var i = 1; i < 4; i++){
+		for(var j = 0; j < 4; j++){
+			if(board[i][j]!=0){
+				if(board[i-1][j] == 0 || board[i-1][j] == board[i][j]){
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+function moveDown(){
+	if(!canMoveDown(board)){
+		return false;
+	}
+	initAddArray();
+	for(var j = 0; j < 4; j++){
+		for(var i = 2; i >= 0; i--){
+			if(board[i][j]!=0){
+				for(var k = 3; k > i; k--){
+					if(board[k][j] == 0 && noBlockVertical(j, k, i, board)){
+						showMoveAnimation(i,j,k,j);
+						board[k][j] = board[i][j];
+						board[i][j] = 0;
+						break;
+					}else if(board[k][j] == board[i][j] && noBlockVertical(j, k, i, board)){
+						showMoveAnimation(i,j,k,j);
+						if(add[k][j] == 0){
+							board[k][j] *= 2;
+							score += board[k][j];
+							board[i][j] = 0;
+							add[k][j] = 1;
+						}else{
+							board[k-1][j] = board[i][j];
+							board[i][j] = 0;
+						}	
+						break;
+					}
+				}
+			}
+		}
+	}
+	setTimeout(updateBoardView,200);
+	return true;
+}
+
+function canMoveDown(board){
+	for(var i = 0; i < 3; i++){
+		for(var j = 0; j < 4; j++){
+			if(board[i][j]!=0){
+				if(board[i+1][j] == 0 || board[i+1][j] == board[i][j]){
+					return true;
+				}
+			}
+		}
+	}
+	return false;
+}
+
+function noBlockVertical(col, row1, row2, board){
+	for(var i = row1+1; i < row2; i++){
+		if(board[i][col] != 0){
+			return false;
+		}
+	}
+	return true;
+}
+
+function showMoveAnimation(fromx, fromy, tox, toy){
+	var numberCell = $('number-cell-'+fromx+'-'+fromy);
+	numberCell.animate({
+		top:getPosTop(tox, toy),
+		left:getPosLeft(tox, toy)
+	},200);
+}
+
+function gameOver(){
+	if(noSpace(board) && noMove()){
+		console.log("Over!")
+		$("#gameover").css("display","block");
+	}
+}
+
+function noMove(){
+	if(!canMoveLeft(board) && !canMoveRight(board) && !canMoveUp(board) && !canMoveDown(board)){
+		return true;
+	}else{
+		return false;
+	}
+}
+
+function initAddArray(){
+	for(var i = 0; i < 4; i++){
+		for(var j = 0; j < 4; j++){
+			add[i][j]=0;
+		}
+	}
+}
+
+function noSpace(board){
+	for(var i = 0; i < 4; i++){
+		for(var j = 0; j < 4; j++){
+			if(board[i][j] == 0){
+				return false;
+			}
+		}
+	}
+	return true;
+}
+
+function getPosTop(i, j){
+	return 20+120*i;
+}
+
+function getPosLeft(i,j){
+	return 20+120*j;
+}
+function getNumberBackgroundColor(number){
+	switch(number){
+		case 2:
+        	return "#eee4da";
+        	break;
+    	case 4:
+        	return "#eee4da";
+        	break;
+    	case 8:
+        	return "#f26179";
+        	break;
+    	case 16:
+        	return "#f59563";
+        	break;
+    	case 32:
+        	return "#f67c5f";
+        	break;
+    	case 64:
+        	return "#f65e36";
+        	break;
+    	case 128:
+        	return "#edcf72";
+        	break;
+    	case 256:
+        	return "#edcc61";
+        	break;
+    	case 512:
+        	return "#9c0";
+        	break;
+    	case 1024:
+        	return "#3365a5";
+        	break;
+    	case 2048:
+        	return "#09c";
+        	break;
+    	case 4096:
+        	return "#a6bc";
+        	break;
+    	case 8192:
+        	return "#93c";
+        	break;
+    }
+    return "black";
+}
+
+function getNumberColor(number){
+	if(number <= 4){
+		return "#776e65";
+	}
+	return "white";
+}
